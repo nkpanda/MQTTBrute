@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 from termcolor import colored
 import paho.mqtt.client as mqtt
