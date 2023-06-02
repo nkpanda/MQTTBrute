@@ -1,4 +1,5 @@
 import argparse
+from termcolor import colored
 import paho.mqtt.client as mqtt
 
 def brute_force_mqtt(ip, port, username_file, password_file):
@@ -13,9 +14,10 @@ def brute_force_mqtt(ip, port, username_file, password_file):
             client.username_pw_set(username, password)
             try:
                 client.connect(ip, port)
-                print(f"Successful login: {username}:{password}")
+                print(colored(f"Successful login: {username}:{password}", "green"))
                 # Do something here after successful login
                 client.disconnect()
+                return  # Stop testing once successful login is found
             except:
                 print(f"Failed login: {username}:{password}")
 
